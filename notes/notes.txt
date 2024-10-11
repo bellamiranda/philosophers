@@ -1,0 +1,104 @@
+./philo n_philo die eat sleep [meals]  (milliseconds)
+PROTECT IF THERE IS ONLY 1 PHILO
+
+https://youtu.be/UGQsvVKwe90?si=MoKaUlF_aR2kvw6d
+DELAY CANNOT PASS 10 MILLISECONDS
+MUTEX TO PRINTF (it first writes to a buf, so only one can access)
+* create a useelp function because the exiting is not precise
+* avoid infinite loops (???)
+* philo doesn't die if he is eating
+Each philo is a THREAD - they all have to exist at the same time
+* threads doesn't happen in the same speed
+pthread_t struct 					void	*function(void *arg)
+- pthread_create(pthread_t *t1, NULL, assign function to the thread, NULL)
+							atributes for the func				arg for the func
+	create the threads
+	if (pthread_create(&t1, ...))
+		exit (1);
+	if (pthread_create(&t2, ...))
+		exit (1);
+* after can join or detach from the main thread
+	join -> the main needs to wait for the others to finish (easier to free)
+	detach -> main doesnt have to wait, all can finish seperately
+- pthread_join(pthread_t t1, NULL)
+						save the return from the function atached
+	join the threads
+	if (pthread_join(t1, NULL))
+		exit (1);
+DATA RACES -> when proccesses tries to modify the same data at the same time
+1- get the value from memory
+2- increment the value obtained
+3- write back to memory (but write on top of the other depending on the speed)
+MUTEX -> blocks the value on the memory while one thread have access to it,
+	so the other don't change the same value
+	* one to protect each fork
+- pthread_mutex_init(pthread_mutex_t *mutex, NULL)
+- pthread_mutex_lock(pthread_mutex_t *mutex)
+change data
+- pthread_mutex_unlock(pthread_mutex_t *mutex)
+* the function receives a void pointer, so you need to cast it for the desired data
+- pthread_mutex_destroy(pthread_mutex_t *mutex) - to free
+
+even num of philo
+die = eat + sleep + 10(depends)
+odd num of philo
+die = eat * 2 + sleep + 10
+* every time a philo eats, update his last meal time (last_eat_time)
+SYNCHRONIZATION
+1- odd philos start sleeping (time to eat / 2) - make sure the 1st half got the forks
+2- odd start on right fork, even start on left fork - avoid dead locks
+3- all philo start on right fork, except the last one
+* one thread to check deaths (switch a flag to stop - every philo has one)
+* one thread to check if finished meals (if arg[5])
+(this because philos can't communicate)
+PHILOSOPHERS VISUALIZER
+valgrind --tool=hellgrind (checks data races)
+
+SETTERS AND GETTERS
+make a function for every mutex, to be easier to lock and unlock everywhere
+void	set_keep_iterating(t_data *data, bool set_to)
+{
+	pthread_mutex_lock(&data->mut_keep_iter);
+	data->keep_iterating = set_to;
+	pthread_mutex_unlock(&data->mut_keep_iter);
+}
+void	set_philo_state(t_philo *philo, t_state state)
+{
+	pthread_mutex_lock(&philo->mut_state);
+	if (philo->state != DEAD)
+		philo->state = state;
+	pthread_mutex_unlock(&philo->mut_state);
+}
+t_state	get_philo_state(t_philo *philo)
+{
+	t_state	state;
+	
+	pthread_mutex_lock(&philo->mut_state);
+	state = philo->state;
+	pthread_mutex_unlock(&philo->mut_state);
+	return (state);
+}
+
+https://www.youtube.com/playlist?list=PLfqABt5AS4FmuQf70psXrsMLEDQXNkLq2
+THREADS IN C CODEVAULT
+#include <pthread.h> and add -pthread to the compiler
+1- pthread_t t1 - define variable struct for each thread you want to create
+2- pthread_create(&t1, NULL, &(function to exec the thread), args for the func)
+	check if returned an error (!=0) and return error or exit
+3- pthread_join(t1, pointer for the return(NULL)) - wait for the thread to finish the execution
+	check if returned an error (!=0) and return error or exit
+* FORK CREATES ANOTHER PROCESS != THREAD
+	With multiple proccess you can modify a single variable in each of them (different PID)
+	With threads, they access all the same variables (same adress space)
+RACE CONDITION -> one thread stops for a while for some reason and when it comes back
+	it writes on top of the value that was already written by the other thread
+	(i < 100, the first thread gets to 100 but the other writes on top)
+* MUTEX prevents race conditions to happen
+	locks the other threads to access whatever is being accessed and changed by the first
+	pthread_mutex__t mutex;
+	pthread_mutex_init(&mutex, NULL(atributes));
+	pthread_mutex_lock(&mutex);
+		//check if the lock was already used by other thread and wait until it unlocks
+	pthread_mutex_unlock(&mutex);
+		//unlocks the access for the next thread
+	pthread_mutex_destroy(&mutex); (free)
