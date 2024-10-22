@@ -6,7 +6,7 @@
 /*   By: ismirand <ismirand@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/08 18:33:04 by ismirand          #+#    #+#             */
-/*   Updated: 2024/10/11 15:35:37 by ismirand         ###   ########.fr       */
+/*   Updated: 2024/10/22 14:27:42 by ismirand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,13 +23,13 @@ int	init_table(char*argv[], t_table *table)
 		table->meals = ft_atoi(argv[5]);
 	table->is_dead = false;
 	table->full = false;
-	table->threads_ready = false;
+	table->table_ready = false;
 	table->fail_thread_creation = false;
 	if (init_mutex(table))
-		return (EXIT_FAILURE);
+		return (print_error(1));
 	if (init_philos(table))
-		return (EXIT_FAILURE);
-	return(EXIT_SUCCESS);
+		return (print_error(4));
+	return (EXIT_SUCCESS);
 }
 
 int	init_mutex(t_table *table)
@@ -40,18 +40,20 @@ int	init_mutex(t_table *table)
 	i = -1;
 	forks = malloc(sizeof(pthread_mutex_t) * table->n_philos);//cria a array do total de garfos na mesa
 	if (!forks)
-		return (EXIT_FAILURE);
+		return (print_error(0));
 	table->forks = forks;
 	while (++i < table->n_philos)
 		if (pthread_mutex_init(&forks[i], NULL) != 0)//inicializa a mutex dos garfos de cada philo
 			return (destroy_mutex(table, (i + 1), 0));
-	if (pthread_mutex_init(&table->wait, NULL) != 0)
+	if (pthread_mutex_init(&table->end, NULL) != 0)
 		return (destroy_mutex(table, i, 1));
 	if (pthread_mutex_init(&table->print, NULL) != 0)
 		return (destroy_mutex(table, i, 2));
 	if (pthread_mutex_init(&table->monitor, NULL) != 0)
 		return (destroy_mutex(table, i, 3));
-	return (EXIT_SUCCESS);//escrever msg de erro
+/* 	if (pthread_mutex_init(&table->routine, NULL) != 0)
+		return (destroy_mutex(table, i, 4)); */
+	return (EXIT_SUCCESS);
 }
 
 int	destroy_mutex(t_table *table, int i, int flag)
@@ -59,12 +61,14 @@ int	destroy_mutex(t_table *table, int i, int flag)
 	while (--i >= 0)
 		pthread_mutex_destroy(&table->forks[i]);
 	if (flag)
-		pthread_mutex_destroy(&table->wait);
-	else if (flag == 2 || flag == 3)
+		pthread_mutex_destroy(&table->end);
+	else if (flag == 2 || flag == 3 || flag == 4)
 		pthread_mutex_destroy(&table->print);
-	else if (flag == 3)
+	else if (flag == 3 || flag == 4)
 		pthread_mutex_destroy(&table->monitor);
-	return (EXIT_FAILURE);
+/* 	else if (flag == 4)
+		pthread_mutex_destroy(&table->routine); */
+	return (print_error(2));
 }
 
 int	init_philos(t_table *table)
@@ -75,7 +79,7 @@ int	init_philos(t_table *table)
 	i = -1;
 	philo = malloc(sizeof(t_philo) * table->n_philos);
 	if (!philo)
-		return (EXIT_FAILURE);
+		return (print_error(3));
 	table->philos = philo;
 	while (++i < table->n_philos)
 	{

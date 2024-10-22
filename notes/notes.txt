@@ -52,7 +52,7 @@ SYNCHRONIZATION
 * one thread to check if finished meals (if arg[5])
 (this because philos can't communicate)
 PHILOSOPHERS VISUALIZER
-valgrind --tool=hellgrind (checks data races)
+valgrind --tool=helgrind (checks data races)
 
 SETTERS AND GETTERS
 make a function for every mutex, to be easier to lock and unlock everywhere

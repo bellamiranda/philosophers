@@ -1,0 +1,543 @@
+
+
+• Suas funções não devem encerrar inesperadamente (falha de segmentação, erro de barramento, duplicação
+grátis, etc), além de comportamentos indefinidos. Se isso acontecer, seu projeto será
+considerado não funcional e receberá nota 0 na avaliação.
+• Todo o espaço de memória alocado no heap deve ser liberado adequadamente quando necessário. Sem vazamentos
+será tolerado.
+
+# ---------------------------------------------------------------------------- #
+
+Aqui estão as coisas que você precisa saber se quiser ter sucesso nesta tarefa:
+• Um ou mais filósofos sentam-se numa mesa redonda.
+Há uma tigela grande de espaguete no meio da mesa.
+
+• Os filósofos alternativamente comem, pensam ou dormem.
+Enquanto comem, não pensam nem dormem;
+enquanto pensam, não comem nem dormem;
+e, claro, enquanto dormem, não comem nem pensam.
+
+• Também há garfos na mesa. Existem tantos garfos quanto filósofos.
+
+• Como servir e comer espaguete com apenas um garfo é muito inconveniente, um
+O filósofo pega os garfos direito e esquerdo para comer, um em cada mão.
+
+• Quando um filósofo termina de comer, ele coloca os garfos de volta na mesa e
+comece a dormir. Uma vez acordados, eles começam a pensar novamente. A simulação para quando
+um filósofo morre de fome.
+
+• Todo filósofo precisa comer e nunca deveria passar fome.
+
+• Os filósofos não falam uns com os outros.
+
+• Os filósofos não sabem se outro filósofo está prestes a morrer.
+
+• Não há necessidade de dizer que os filósofos deveriam evitar morrer!
+
+# ---------------------------------------------------------------------------- #
+
+Você tem que escrever um programa para a parte obrigatória e outro para a parte bônus
+(se você decidir fazer a parte bônus). Ambos devem cumprir as seguintes regras:
+
+• Variáveis ​​globais são proibidas!
+
+• Seu(s) programa(s) deve(m) receber os seguintes argumentos:
+- número_de_filósofos
+- hora_de_morrer 
+- hora_de_comer
+- hora_de_dormir
+- [número_de_vezes_each_philosopher_must_eat]
+◦ número_de_filósofos: O número de filósofos e também o número
+de garfos.
+
+◦ time_to_die (em milissegundos): Se um filósofo não começasse a comer time_to_die
+milissegundos desde o início da última refeição ou do início da simulação, eles morrem.
+
+◦ time_to_eat (em milissegundos): O tempo que um filósofo leva para comer.
+Durante esse tempo, eles precisarão segurar dois garfos.
+
+◦ time_to_sleep (em milissegundos): O tempo que um filósofo passará dormindo.
+
+◦ number_of_times_each_philosopher_must_eat (argumento opcional): se todos
+filósofos comeram pelo menos number_of_times_each_philosopher_must_eat
+vezes, a simulação para. Se não for especificado, a simulação para quando um
+filósofo morre.
+• Cada filósofo possui um número que varia de 1 a número_de_filósofos.
+
+• O filósofo número 1 fica ao lado do filósofo número número_de_filósofos.
+Qualquer outro número de filósofo N fica entre o número de filósofo N - 1 e o número de filósofo N + 1
+
+# ---------------------------------------------------------------------------- #
+
+Sobre os logs do seu programa:
+• Qualquer mudança de estado de um filósofo deve ser formatada da seguinte forma:
+◦ timestamp_in_ms X tomou uma bifurcação
+◦ timestamp_in_ms X está comendo
+◦ timestamp_in_ms X está dormindo
+◦ timestamp_in_ms X está pensando
+◦ timestamp_in_ms X morreu
+Substitua timestamp_in_ms pelo carimbo de data/hora atual em milissegundos
+e X com o número do filósofo.
+• Uma mensagem de estado exibida não deve ser confundida com outra mensagem.
+• Uma mensagem anunciando a morte de um filósofo não deve ser exibida por mais de 10 ms
+após a morte real do filósofo.
+• Mais uma vez, os filósofos deveriam evitar morrer!
+
+Seu programa não deve ter nenhuma corrida de dados.
+
+# ---------------------------------------------------------------------------- #
+
+Capítulo V
+Parte obrigatória
+Nome do programa philo
+
+Entregue os arquivos Makefile, *.h, *.c, no diretório philo/
+NOME do Makefile, tudo, limpo, fclean, re
+Argumentos número_de_filósofos tempo_para_morrer tempo_para_comer
+hora_de_dormir
+[número_de_vezes_each_philosopher_must_eat]
+Funções externas. memset, printf, malloc, grátis, escrever,
+usleep, gettimeofday, pthread_create,
+pthread_detach, pthread_join, pthread_mutex_init,
+pthread_mutex_destroy, pthread_mutex_lock,
+pthread_mutex_unlock
+Libft autorizado Não
+Descrição Filósofos com threads e mutexes
+As regras específicas da parte obrigatória são:
+• Cada filósofo deveria ser um fio.
+• Existe uma bifurcação entre cada par de filósofos. Portanto, se houver vários
+filósofos, cada filósofo tem um garfo no lado esquerdo e um garfo no lado direito
+lado. Se houvesse apenas um filósofo, deveria haver apenas um garfo na mesa.
+• Para evitar que os filósofos dupliquem bifurcações, você deve proteger o estado das bifurcações
+com um mutex para cada um deles.
+
+
+# ---------------------------------------------------------------------------- #
+#                                  PHILO ATUAL                                 #
+# ---------------------------------------------------------------------------- #
+
+typedef struct s_philo
+{
+	pthread_t		thread;
+	int				id;
+	int				eated_amount;
+	size_t			last_meal_time;
+	pthread_mutex_t	*left_fork;
+	struct s_exe	*exe;
+}	t_philo;
+
+typedef struct s_exe
+{
+	int				p_amount;
+	int				target_eat;
+	int				time_to_die;
+	int				time_to_eat;
+	int				time_to_sleep;
+	int				dead_flag;
+	int				all_eaten_flag;
+	size_t			start_time;
+	t_philo			*philos;
+	pthread_mutex_t	*forks;
+	pthread_mutex_t	write_lock;
+	pthread_mutex_t	dead_lock;
+}	t_exe;
+
+int	ft_atoi(char *nptr)
+{
+	int	i;
+	int	r;
+	int	sinal;
+
+	sinal = 1;
+	i = 0;
+	r = 0;
+	while (nptr[i] == 32 || (nptr[i] >= 9 && nptr[i] <= 13))
+		i++;
+	if (nptr[i] == '+' || nptr[i] == '-')
+	{
+		if (nptr[i] == '-')
+			sinal *= -1;
+		i++;
+	}
+	while (nptr[i] >= '0' && nptr[i] <= '9')
+	{
+		r *= 10;
+		r += (nptr[i] - '0');
+		i++;
+	}
+	r *= sinal;
+	return (r);
+}
+
+int	ft_isdigit(int i)
+{
+	if (i >= '0' && i <= '9')
+		return (2048);
+	return (0);
+}
+
+size_t	get_current_time(void)
+{
+	struct timeval	time;
+
+	if (gettimeofday(&time, NULL) == -1)
+		write(2, "gettimeofday() error\n", 22);
+	return (time.tv_sec * 1000 + time.tv_usec / 1000);
+}
+
+int	ft_usleep(size_t milliseconds)
+{
+	size_t	start;
+
+	start = get_current_time();
+	while ((get_current_time() - start) < milliseconds)
+		usleep(500);
+	return (0);
+}
+
+void	*ft_memset(void *b, int c, size_t len)
+{
+	char	*p;
+
+	p = (char *)b;
+	while (len > 0)
+	{
+		p[len - 1] = c;
+		len--;
+	}
+	return (b);
+}
+
+int	dead_loop(t_philo *philo)
+{
+	if (!philo->exe)
+	{
+		return (1);
+	}
+	pthread_mutex_lock(&philo->exe->dead_lock);
+	if (philo->exe->dead_flag || philo->exe->all_eaten_flag)
+	{
+		pthread_mutex_unlock(&philo->exe->dead_lock);
+		return (1);
+	}
+	pthread_mutex_unlock(&philo->exe->dead_lock);
+	return (0);
+}
+
+void	print_msg(char *str, t_philo *philo, int id, int action)
+{
+	size_t	timestamp;
+
+	pthread_mutex_lock(&philo->exe->write_lock);
+	if (!dead_loop(philo))
+	{
+		timestamp = get_current_time() - philo->exe->start_time;
+		printf("%zu ", timestamp);
+		if (action == EAT)
+		{
+			printf("\033[32m");
+			printf(str, id);
+			printf("\033[0m");
+		}
+		else if (action == SLEEP)
+		{
+			printf("\033[33m");
+			printf(str, id);
+			printf("\033[0m");
+		}
+		else
+			printf(str, id);
+	}
+	pthread_mutex_unlock(&philo->exe->write_lock);
+}
+
+void	ft_sleep(t_philo *philo)
+{
+	if (dead_loop(philo))
+		return ;
+	print_msg("%i is sleeping\n", philo, philo->id, SLEEP);
+	ft_usleep(philo->exe->time_to_sleep);
+}
+
+void	think(t_philo *philo)
+{
+	if (dead_loop(philo))
+		return ;
+	print_msg("%i is thinking\n", philo, philo->id, THINK);
+}
+
+int	get_fork(t_philo *philo)
+{
+	int	right_fork_id;
+
+	right_fork_id = (philo->id) % philo->exe->p_amount;
+	if (philo->id % 2 == 0)
+	{
+		pthread_mutex_lock(philo->left_fork);
+		print_msg("%i has taken a fork\n", philo, philo->id, 0);
+		pthread_mutex_lock(&philo->exe->forks[right_fork_id]);
+		print_msg("%i has taken a fork\n", philo, philo->id, 0);
+	}
+	else
+	{
+		pthread_mutex_lock(&philo->exe->forks[right_fork_id]);
+		print_msg("%i has taken a fork\n", philo, philo->id, 0);
+		pthread_mutex_lock(philo->left_fork);
+		print_msg("%i has taken a fork\n", philo, philo->id, 0);
+	}
+	return (right_fork_id);
+}
+
+void	eat(t_philo *philo)
+{
+	int	right_fork_id;
+
+	right_fork_id = get_fork(philo);
+	if (dead_loop(philo))
+	{
+		pthread_mutex_unlock(philo->left_fork);
+		pthread_mutex_unlock(&philo->exe->forks[right_fork_id]);
+		return ;
+	}
+	print_msg ("%i is eating\n", philo, philo->id, EAT);
+	ft_usleep(philo->exe->time_to_eat);
+	pthread_mutex_lock(&philo->exe->dead_lock);
+	philo->last_meal_time = get_current_time();
+	if (philo->eated_amount != -5)
+		++philo->eated_amount;
+	pthread_mutex_unlock(&philo->exe->dead_lock);
+	pthread_mutex_unlock(philo->left_fork);
+	pthread_mutex_unlock(&philo->exe->forks[right_fork_id]);
+}
+
+void	*define_action(void *arg)
+{
+	t_philo	*philo;
+
+	philo = (t_philo *)arg;
+	while (1)
+	{
+		if (dead_loop(philo))
+			return (NULL);
+		eat(philo);
+		if (dead_loop(philo))
+			return (NULL);
+		ft_sleep(philo);
+		if (dead_loop(philo))
+			return (NULL);
+		think(philo);
+	}
+	return (NULL);
+}
+
+int	initialize_philosophers(t_exe *pgr)
+{
+	int	i;
+
+	i = -1;
+	while (++i < pgr->p_amount)
+	{
+		pgr->philos[i].id = i + 1;
+		pgr->philos[i].eated_amount = 0;
+		pgr->philos[i].exe = pgr;
+		pgr->philos[i].left_fork = &pgr->forks[i];
+		pgr->philos[i].last_meal_time = get_current_time();
+		if (pthread_create(&pgr->philos[i].thread, NULL, &define_action,
+				&pgr->philos[i]) != 0)
+		{
+			puts("\033[31mError creating thread\033[0m");
+			pthread_mutex_lock(&pgr->dead_lock);
+			pgr->dead_flag = 1;
+			pthread_mutex_unlock(&pgr->dead_lock);
+			return (-1);
+		}
+	}
+	return (0);
+}
+
+int	initialize_mutexes(t_exe *pgr)
+{
+	int	i;
+
+	i = -1;
+	while (++i < pgr->p_amount)
+	{
+		if (pthread_mutex_init(&pgr->forks[i], NULL) != 0)
+		{
+			puts("\033[31mError creating mutex\033[0m");
+			return (-1);
+		}
+	}
+	if (pthread_mutex_init(&pgr->write_lock, NULL) != 0)
+	{
+		puts("\033[31mError creating mutex\033[0m");
+		return (-1);
+	}
+	if (pthread_mutex_init(&pgr->dead_lock, NULL) != 0)
+	{
+		puts("\033[31mError creating mutex\033[0m");
+		return (-1);
+	}
+	return (0);
+}
+
+int	init_threads(t_exe *pgr, char **args)
+{
+	pgr->p_amount = ft_atoi(args[1]);
+	pgr->time_to_die = ft_atoi(args[2]);
+	pgr->time_to_eat = ft_atoi(args[3]);
+	pgr->time_to_sleep = ft_atoi(args[4]);
+	pgr->dead_flag = 0;
+	pgr->all_eaten_flag = 0;
+	pgr->start_time = get_current_time();
+	pgr->philos = malloc(sizeof(t_philo) * pgr->p_amount);
+	if (!pgr->philos)
+	{
+		puts("\033[31mError allocating memory *philos*\033[0m");
+		return (-1);
+	}
+	ft_memset(pgr->philos, 0, sizeof(t_philo) * pgr->p_amount);
+	pgr->forks = malloc(sizeof(pthread_mutex_t) * pgr->p_amount);
+	if (!pgr->philos || !pgr->forks)
+	{
+		puts("\033[31mError allocating memory *init_threads*\033[0m");
+		return (-1);
+	}
+	if (initialize_mutexes(pgr) != 0)
+		return (-1);
+	if (initialize_philosophers(pgr) != 0)
+		return (-1);
+	return (0);
+}
+int	check_dead(t_exe *exe)
+{
+	int	i;
+
+	i = 0;
+	while (i < exe->p_amount)
+	{
+		if ((int)(get_current_time() - exe->philos[i].last_meal_time) >
+			exe->time_to_die)
+		{
+			printf("\033[31m%lu", get_current_time() - exe->start_time);
+			printf(" %i died\n\033[0m", exe->philos[i].id);
+			return (1);
+		}
+		i++;
+	}
+	return (0);
+}
+
+void	*monitor_aux(void *arg)
+{
+	t_exe	*exe;
+	int		i;
+
+	exe = (t_exe *)arg;
+	while (1)
+	{
+		i = -1;
+		pthread_mutex_lock(&exe->dead_lock);
+		if (check_dead(exe))
+			exe->dead_flag = 1;
+		if (exe->target_eat > 0)
+		{
+			while (++i < exe->p_amount)
+			{
+				if (exe->philos[i].eated_amount < exe->target_eat)
+					break ;
+			}
+			if (i == exe->p_amount)
+				exe->all_eaten_flag = 1;
+		}
+		pthread_mutex_unlock(&exe->dead_lock);
+		if (exe->dead_flag || exe->all_eaten_flag)
+			return ((void *)1);
+		ft_usleep(2);
+	}
+}
+
+int	monitor_philos(t_exe *pgr)
+{
+	pthread_t	monitor_eat;
+	void		*ret;
+
+	if (pthread_create(&monitor_eat, NULL, monitor_aux, pgr))
+	{
+		puts ("\033[31mPthread create! *monitor_aux*\033[0m");
+		return (-1);
+	}
+	pthread_join(monitor_eat, (void **) &ret);
+	if (ret == (void *)1)
+	{
+		return (1);
+	}
+	return (0);
+}
+
+void	clean_program(t_exe *pgr)
+{
+	int	i;
+
+	i = 0;
+	while (i < pgr->p_amount)
+	{
+		pthread_mutex_destroy(&pgr->forks[i]);
+		i++;
+	}
+	pthread_mutex_destroy(&pgr->write_lock);
+	pthread_mutex_destroy(&pgr->dead_lock);
+	i = -1;
+	while (++i < pgr->p_amount)
+		pthread_join(pgr->philos[i].thread, NULL);
+	free(pgr->philos);
+	free(pgr->forks);
+	free(pgr);
+}
+
+int	main(int argc, char **argv)
+{
+	t_exe	*start;
+
+	if (ft_aux(argc, argv))
+		return (1);
+	start = malloc(sizeof(t_exe));
+	if (!start)
+	{
+		puts("\033[31mError malloc struct t_exe *main*\033[0m");
+		return (1);
+	}
+	if (argc == 6)
+		start->target_eat = ft_atoi(argv[5]);
+	else
+		start->target_eat = -5;
+	if (init_threads(start, argv) != 0)
+	{
+		clean_program(start);
+		return (1);
+	}
+	if (monitor_philos(start))
+	{
+		clean_program(start);
+		return (1);
+	}
+	return (0);
+}
+
+int	ft_aux(int argc, char **argv)
+{
+	if (argc != 6 && argc != 5)
+	{
+		puts("\033[31mBad argument!\033[0m");
+		return (1);
+	}
+	if (ft_atoi(argv[1]) == 1)
+	{
+		ft_usleep(ft_atoi(argv[2]));
+		printf("\033[31mPhilo 1 died\n\033[0m");
+		return (1);
+	}
+	if (check_arg(argv, argc, 0))
+		return (1);
+	return (0);
+}

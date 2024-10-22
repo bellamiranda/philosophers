@@ -6,7 +6,7 @@
 /*   By: ismirand <ismirand@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 12:56:23 by ismirand          #+#    #+#             */
-/*   Updated: 2024/10/11 15:48:02 by ismirand         ###   ########.fr       */
+/*   Updated: 2024/10/22 13:50:40 by ismirand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,11 +26,11 @@
 # define RESET	"\033[0m"
 # define RED	"\033[31;1m"
 # define GREEN	"\033[32;1m"
+# define CYAN	"\033[36;1m"
+# define WHITE	"\033[37;1m"
 # define YELLOW	"\033[33;1m"
 # define BLUE	"\033[34;1m"
 # define MGT	"\033[35;1m"
-# define CYAN	"\033[36;1m"
-# define WHITE	"\033[37;1m"
 # define ORANGE "\033[1;38;5;208m"
 
 # define TAKE_FORK "has taken a fork"
@@ -70,13 +70,14 @@ typedef struct s_table
 	size_t			start;
 	bool			is_dead;
 	bool			full;
-	bool			threads_ready;
+	bool			table_ready;
 	bool			fail_thread_creation;
 	pthread_t		thread_monitor;
 	pthread_mutex_t	*forks;//pointer para array de garfos na mesa
+	//pthread_mutex_t	routine;
 	pthread_mutex_t	monitor;
 	pthread_mutex_t	print;
-	pthread_mutex_t	wait;
+	pthread_mutex_t	end;
 	t_philo			*philos;
 }					t_table;
 
@@ -94,20 +95,28 @@ int	destroy_mutex(t_table *table, int i, int flag);
 int	init_philos(t_table *table);
 
 //threads.c
-int	threads(t_table *table);
+int	threads(t_table *table, int i);
+int	join_philos(t_table *table);
 int	threads_fail(t_table *table);
+int	one_philo(char *t_die);
 
 //routine.c
 void	*routine(void *x);
-void	*one_philo(t_philo *philo);
+void	eating(t_philo *ph, pthread_mutex_t *a_fork, pthread_mutex_t *b_fork);
+void	sleeping(t_philo *philo);
+void	thinking(t_philo *philo);
 
 //utils.c
 size_t	get_current_time(void);
 void	ft_usleep(size_t time);
 int		print(t_philo *philo, char *str, char *c);
+int		print_error(int flag);
 
 //monitoring.c
 void	*monitoring(void *x);
+int		is_dead(t_table *table, int i);
+int		is_all_full(t_table *table);
+int		dead_or_full(t_table *table);
 
 
 #endif

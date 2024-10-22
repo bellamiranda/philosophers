@@ -6,7 +6,7 @@
 /*   By: ismirand <ismirand@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/11 14:46:47 by ismirand          #+#    #+#             */
-/*   Updated: 2024/10/11 15:29:47 by ismirand         ###   ########.fr       */
+/*   Updated: 2024/10/22 15:32:11 by ismirand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,40 +18,63 @@ void	*routine(void *x)
 
 	philo = (t_philo *)x;
 	if (threads_fail(philo->table))
-		return (NULL);//pq retorna NULL?
-	if (philo->table->n_philos == 1)
-		return (one_philo(philo));
+		return (NULL);
+	//printf("%i\n", philo->table->table_ready);//acho que ta com problema aqui
+	//if (philo->id % 2 == 0)
+	//	ft_usleep(10);//os pares esperam, assim os impares pegam o garfo primeiro
+	while (42)
+	{
+		if (dead_or_full(philo->table))//caso algum morra ou todos terminem de comer
+			return (NULL);
+		if (philo->id % 2 != 0)//impares comecam pegando o garfo da esqueda
+			eating(philo, philo->l_fork, philo->r_fork);
+		else// if (philo->id % 2 == 0)
+			eating(philo, philo->r_fork, philo->l_fork);
+		sleeping(philo);
+		thinking(philo);
+	}
+	//return (NULL);
 }
 
-/* void	*routine(void *philo)
+void	eating(t_philo *ph, pthread_mutex_t *a_fork, pthread_mutex_t *b_fork)
 {
-	t_philo		*ph;
+	if (dead_or_full(ph->table))
+		return ;
+	pthread_mutex_lock(a_fork);
+	print(ph, TAKE_FORK, WHITE);
+	pthread_mutex_lock(b_fork);
+	print(ph, TAKE_FORK, WHITE);
+	print(ph, EAT, GREEN);
+	pthread_mutex_lock(&ph->table->monitor);
+	ph->last_meal = get_current_time() - ph->table->start;
+	pthread_mutex_unlock(&ph->table->monitor);
+	ft_usleep(ph->table->t_eat);
+	pthread_mutex_unlock(a_fork);
+	pthread_mutex_unlock(b_fork);
+	pthread_mutex_lock(&ph->table->monitor);
+	ph->meals++;
+	if (ph->meals == ph->table->meals)
+		ph->is_full = true;
+	pthread_mutex_unlock(&ph->table->monitor);
+}
 
-	ph = (t_philo *)philo;
-	if (!wait_threads_creation(ph->prog))
-		return (NULL);
-	if (ph->id % 2 == 0)
-		ft_usleep(10);
-	if (ph->prog->n_philos == 1)
-		return (one_philo(ph));
-	while (1)
-	{
-		if (check_dinner_end(ph) == 1)
-			return (NULL);
-		if (ph->id % 2 != 0)
-			eating(ph, ph->l_fork, ph->r_fork);
-		else if (ph->id % 2 == 0)
-			eating(ph, ph->r_fork, ph->l_fork);
-		sleeping(ph);
-		thinking(ph);
-	}
-	return (NULL);
-} */
-
-void	*one_philo(t_philo *philo)
+void	sleeping(t_philo *philo)
 {
-	pthread_mutex_lock(philo->l_fork);
-	print(philo, TAKE_FORK, CYAN);
-	pthread_mutex_unlock(philo->l_fork);
-	return (NULL);
+	if (dead_or_full(philo->table))//isso nao ta funcionando
+		return ;
+	print(philo, SLEEP, CYAN);
+	ft_usleep(philo->table->t_sleep);
+/* 	pthread_mutex_lock(&philo->table->monitor);
+	philo->table->is_dead = true;
+	pthread_mutex_unlock(&philo->table->monitor); */
+}
+
+//so pra aguardar os outros terminarem de comer
+void	thinking(t_philo *philo)
+{
+	if (dead_or_full(philo->table))
+		return ;
+	print(philo, THINK, MGT);
+	if (philo->table->n_philos % 2 != 0)
+		ft_usleep(1);
 }
