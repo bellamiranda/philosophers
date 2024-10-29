@@ -22,7 +22,7 @@ SRC_DIR = ./source/
 SRC = parsing.c init.c threads.c routine.c utils.c monitoring.c
 
 #COMPILATION
-CC = cc
+CC = cc #-fsanitize=thread
 GCC = cc -g
 CFLAGS = -Wall -Wextra -Werror -pthread
 

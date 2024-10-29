@@ -6,7 +6,7 @@
 /*   By: ismirand <ismirand@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 12:55:10 by ismirand          #+#    #+#             */
-/*   Updated: 2024/10/22 14:54:03 by ismirand         ###   ########.fr       */
+/*   Updated: 2024/10/24 16:28:22 by ismirand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,15 +28,5 @@ int	main(int argc, char *argv[])
 }
 
 /* 
-ERROS:
-philo: pthread_mutex_lock.c:94: ___pthread_mutex_lock: Assertion `mutex->__data.__owner == 0' failed.
-zsh: IOT instruction (core dumped)  ./philo 4 200 205 200
-
-philo: pthread_mutex_lock.c:94: ___pthread_mutex_lock: Assertion `mutex->__data.__owner == 0' failed.
-1729522300032 1 has taken a fork
-1 1 has taken a fork
-1 1 is eating
-zsh: IOT instruction (core dumped)  ./philo 4 200 205 200
-
-
+./philo 199 601 200 100 -> nao morre
  */

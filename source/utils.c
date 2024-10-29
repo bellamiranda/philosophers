@@ -6,7 +6,7 @@
 /*   By: ismirand <ismirand@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/11 13:38:01 by ismirand          #+#    #+#             */
-/*   Updated: 2024/10/22 13:09:43 by ismirand         ###   ########.fr       */
+/*   Updated: 2024/10/29 13:07:15 by ismirand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,8 +45,10 @@ int	print(t_philo *philo, char *str, char *c)
 	pthread_mutex_lock(&philo->table->print);
 	if (!philo->table->is_dead && !philo->table->full)
 	{
+		pthread_mutex_lock(&philo->table->check);
 		printf("%s%zu %i %s\n"RESET, c, get_current_time()
 			- philo->table->start, philo->id, str);
+		pthread_mutex_unlock(&philo->table->check);
 	}
 	pthread_mutex_unlock(&philo->table->print);
 	return (0);

@@ -6,7 +6,7 @@
 /*   By: ismirand <ismirand@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/11 14:46:47 by ismirand          #+#    #+#             */
-/*   Updated: 2024/10/22 15:32:11 by ismirand         ###   ########.fr       */
+/*   Updated: 2024/10/29 13:17:57 by ismirand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,21 +19,19 @@ void	*routine(void *x)
 	philo = (t_philo *)x;
 	if (threads_fail(philo->table))
 		return (NULL);
-	//printf("%i\n", philo->table->table_ready);//acho que ta com problema aqui
-	//if (philo->id % 2 == 0)
-	//	ft_usleep(10);//os pares esperam, assim os impares pegam o garfo primeiro
+	if (philo->id % 2 == 0)
+		ft_usleep(10);
 	while (42)
 	{
-		if (dead_or_full(philo->table))//caso algum morra ou todos terminem de comer
+		if (dead_or_full(philo->table))
 			return (NULL);
-		if (philo->id % 2 != 0)//impares comecam pegando o garfo da esqueda
+		if (philo->id % 2 != 0)
 			eating(philo, philo->l_fork, philo->r_fork);
-		else// if (philo->id % 2 == 0)
+		else
 			eating(philo, philo->r_fork, philo->l_fork);
 		sleeping(philo);
 		thinking(philo);
 	}
-	//return (NULL);
 }
 
 void	eating(t_philo *ph, pthread_mutex_t *a_fork, pthread_mutex_t *b_fork)
@@ -60,21 +58,18 @@ void	eating(t_philo *ph, pthread_mutex_t *a_fork, pthread_mutex_t *b_fork)
 
 void	sleeping(t_philo *philo)
 {
-	if (dead_or_full(philo->table))//isso nao ta funcionando
+	if (dead_or_full(philo->table))
 		return ;
 	print(philo, SLEEP, CYAN);
 	ft_usleep(philo->table->t_sleep);
-/* 	pthread_mutex_lock(&philo->table->monitor);
-	philo->table->is_dead = true;
-	pthread_mutex_unlock(&philo->table->monitor); */
 }
 
-//so pra aguardar os outros terminarem de comer
 void	thinking(t_philo *philo)
 {
 	if (dead_or_full(philo->table))
 		return ;
 	print(philo, THINK, MGT);
-	if (philo->table->n_philos % 2 != 0)
-		ft_usleep(1);
+	if (philo->table->n_philos % 2 != 0
+		&& philo->table->t_eat >= philo->table->t_sleep)
+		ft_usleep(philo->table->t_eat - philo->table->t_sleep + 1);
 }

@@ -6,7 +6,7 @@
 /*   By: ismirand <ismirand@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/11 15:03:56 by ismirand          #+#    #+#             */
-/*   Updated: 2024/10/22 15:37:27 by ismirand         ###   ########.fr       */
+/*   Updated: 2024/10/29 13:18:06 by ismirand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,15 +38,18 @@ void	*monitoring(void *x)
 
 int	is_dead(t_table *table, int i)
 {
+	pthread_mutex_lock(&table->end);
 	if ((get_current_time() - table->start - table->philos[i].last_meal
-		>= (size_t)table->t_die) && !table->philos[i].is_full)
+			>= (size_t)table->t_die) && !table->philos[i].is_full)
 	{
 		print(&table->philos[i], DIED, RED);
-		pthread_mutex_lock(&table->end);
-		table->is_dead = 1;
+		pthread_mutex_lock(&table->check);
+		table->is_dead = true;
+		pthread_mutex_unlock(&table->check);
 		pthread_mutex_unlock(&table->end);
 		return (true);
 	}
+	pthread_mutex_unlock(&table->end);
 	return (false);
 }
 
@@ -73,12 +76,12 @@ int	is_all_full(t_table *table)
 
 int	dead_or_full(t_table *table)
 {
-	pthread_mutex_lock(&table->end);//acho que essa mutex ta sendo usada em dois lugares
+	pthread_mutex_lock(&table->check);
 	if (table->is_dead || table->full)
 	{
-		pthread_mutex_unlock(&table->end);
+		pthread_mutex_unlock(&table->check);
 		return (true);
 	}
-	pthread_mutex_unlock(&table->end);
+	pthread_mutex_unlock(&table->check);
 	return (false);
 }

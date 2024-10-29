@@ -6,7 +6,7 @@
 /*   By: ismirand <ismirand@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 12:56:23 by ismirand          #+#    #+#             */
-/*   Updated: 2024/10/22 13:50:40 by ismirand         ###   ########.fr       */
+/*   Updated: 2024/10/29 13:16:01 by ismirand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,7 @@ typedef struct s_table
 	bool			fail_thread_creation;
 	pthread_t		thread_monitor;
 	pthread_mutex_t	*forks;//pointer para array de garfos na mesa
-	//pthread_mutex_t	routine;
+	pthread_mutex_t	check;
 	pthread_mutex_t	monitor;
 	pthread_mutex_t	print;
 	pthread_mutex_t	end;
@@ -89,16 +89,16 @@ int		is_valid_time(int argc, char *argv[]);
 long	ft_atoi(const char *str);
 
 //init.c
-int	init_table(char *argv[], t_table *table);
-int	init_mutex(t_table *table);
-int	destroy_mutex(t_table *table, int i, int flag);
-int	init_philos(t_table *table);
+int		init_table(char *argv[], t_table *table);
+int		init_mutex(t_table *table);
+int		destroy_mutex(t_table *table, int i, int flag);
+int		init_philos(t_table *table);
 
 //threads.c
-int	threads(t_table *table, int i);
-int	join_philos(t_table *table);
-int	threads_fail(t_table *table);
-int	one_philo(char *t_die);
+int		threads(t_table *table, int i);
+int		join_and_clean(t_table *table);
+int		threads_fail(t_table *table);
+int		one_philo(char *t_die);
 
 //routine.c
 void	*routine(void *x);
@@ -117,6 +117,5 @@ void	*monitoring(void *x);
 int		is_dead(t_table *table, int i);
 int		is_all_full(t_table *table);
 int		dead_or_full(t_table *table);
-
 
 #endif
